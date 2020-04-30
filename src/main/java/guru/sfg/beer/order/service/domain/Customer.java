@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -47,8 +48,8 @@ public class Customer extends BaseEntity {
     }
 
     private String customerName;
-
-    @Column(length = 36, columnDefinition = "varchar")
+    @Type(type="org.hibernate.type.UUIDCharType") //for escaping Incorrect string value: '\xF0\x90\x8D\x83\xF0\x90...' for column 'apiKey' at row 1
+    @Column(length = 36, columnDefinition = "varchar(36)")
     private UUID apiKey;
 
     @OneToMany(mappedBy = "customer")
