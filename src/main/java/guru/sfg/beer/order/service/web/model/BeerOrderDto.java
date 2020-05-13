@@ -17,6 +17,7 @@
 
 package guru.sfg.beer.order.service.web.model;
 
+import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,11 +34,11 @@ public class BeerOrderDto extends BaseItem {
 
     @Builder
     public BeerOrderDto(UUID id, Integer version, OffsetDateTime createdDate, OffsetDateTime lastModifiedDate, UUID customerId, List<BeerOrderLineDto> beerOrderLines,
-                        OrderStatusEnum orderStatus, String orderStatusCallbackUrl, String customerRef) {
+                        BeerOrderStatusEnum beerOrderStatusEnum, String orderStatusCallbackUrl, String customerRef) {
         super(id, version, createdDate, lastModifiedDate);
         this.customerId = customerId;
         this.beerOrderLines = beerOrderLines;
-        this.orderStatus = orderStatus;
+        this.beerOrderStatusEnum = beerOrderStatusEnum;
         this.orderStatusCallbackUrl = orderStatusCallbackUrl;
         this.customerRef = customerRef;
     }
@@ -45,6 +46,6 @@ public class BeerOrderDto extends BaseItem {
     private UUID customerId;
     private String customerRef;
     private List<BeerOrderLineDto> beerOrderLines;
-    private OrderStatusEnum orderStatus;
+    private BeerOrderStatusEnum beerOrderStatusEnum;
     private String orderStatusCallbackUrl;
 }
