@@ -4,6 +4,7 @@ import guru.sfg.beer.order.service.domain.BeerOrder;
 import guru.sfg.beer.order.service.domain.BeerOrderEventEnum;
 import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
 import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
+import guru.sfg.beer.order.service.sm.BeerOrderStateChangeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -21,6 +22,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     private final StateMachineFactory<BeerOrderStatusEnum, BeerOrderEventEnum> stateMachineFactory;
     private final BeerOrderRepository beerOrderRepository;
+    private final BeerOrderStateChangeInterceptor interceptor;
 
     @Override
     public BeerOrder newBeerOrder(BeerOrder beerOrder) {
@@ -35,7 +37,10 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     private void sendBeerOrderEvent(BeerOrder beerOrder, BeerOrderEventEnum eventEnum) {
         StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> sm = build(beerOrder);
-        Message msg = MessageBuilder.withPayload(eventEnum).build();
+        Message msg = MessageBuilder
+                .withPayload(eventEnum)
+                .setHeader(BeerOrderManager.BEER_ORDER_ID_HEADER, beerOrder.getId().toString())
+                .build();
         sm.sendEvent(msg);
 
     }
@@ -46,6 +51,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         sm.stop();
         // for restoring state from database
         sm.getStateMachineAccessor().doWithAllRegions(sma -> {
+            sma.addStateMachineInterceptor(interceptor);
             sma.resetStateMachine(new DefaultStateMachineContext<>(beerOrder.getOrderStatus(), null, null, null));
         });
         sm.start();
