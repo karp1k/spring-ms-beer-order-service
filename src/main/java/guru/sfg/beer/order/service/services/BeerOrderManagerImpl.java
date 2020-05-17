@@ -13,6 +13,8 @@ import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 /**
  * @author kas
  */
@@ -33,6 +35,17 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         BeerOrder savedOrder = beerOrderRepository.save(beerOrder);
         sendBeerOrderEvent(savedOrder, BeerOrderEventEnum.VALIDATE_ORDER);
         return savedOrder;
+    }
+
+    @Override
+    public void handleValidation(UUID orderId, boolean isValid) {
+        BeerOrder order = beerOrderRepository.findOneById(orderId);
+        if (isValid) {
+            sendBeerOrderEvent(order, BeerOrderEventEnum.VALIDATION_PASSED);
+        } else {
+            sendBeerOrderEvent(order, BeerOrderEventEnum.VALIDATION_FAILED);
+        }
+
     }
 
     private void sendBeerOrderEvent(BeerOrder beerOrder, BeerOrderEventEnum eventEnum) {
