@@ -23,10 +23,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Set;
 import java.util.UUID;
@@ -60,7 +57,7 @@ public class BeerOrder extends BaseEntity {
     @OneToMany(mappedBy = "beerOrder", cascade = CascadeType.ALL)
     @Fetch(FetchMode.JOIN)
     private Set<BeerOrderLine> beerOrderLines;
-
+    @Enumerated(EnumType.STRING)
     private BeerOrderStatusEnum orderStatus = BeerOrderStatusEnum.NEW;
     private String orderStatusCallbackUrl;
 }
