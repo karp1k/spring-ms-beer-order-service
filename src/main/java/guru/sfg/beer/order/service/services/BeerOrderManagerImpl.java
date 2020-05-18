@@ -41,7 +41,15 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     public void handleValidation(UUID orderId, boolean isValid) {
         BeerOrder order = beerOrderRepository.findOneById(orderId);
         if (isValid) {
+            /*
+                John decided to send another event - ALLOCATE_ORDER to allocation process
+                instead of associating a VALIDATION_PASSED event with the AllocateOrderAction
+
+            */
             sendBeerOrderEvent(order, BeerOrderEventEnum.VALIDATION_PASSED);
+            // entity state changed, we need a new representation
+            BeerOrder validatedOrder = beerOrderRepository.findOneById(orderId);
+            sendBeerOrderEvent(validatedOrder, BeerOrderEventEnum.ALLOCATE_ORDER);
         } else {
             sendBeerOrderEvent(order, BeerOrderEventEnum.VALIDATION_FAILED);
         }
