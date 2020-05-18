@@ -5,6 +5,7 @@ import guru.sfg.beer.order.service.domain.BeerOrderEventEnum;
 import guru.springframework.springmsbeercommon.beerorder.domain.BeerOrderStatusEnum;
 import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.sm.BeerOrderStateChangeInterceptor;
+import guru.springframework.springmsbeercommon.web.model.BeerOrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -53,6 +54,34 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         } else {
             sendBeerOrderEvent(order, BeerOrderEventEnum.VALIDATION_FAILED);
         }
+
+    }
+
+    @Override
+    public void processAllocation(BeerOrderDto beerOrderDto, Boolean allocationError, Boolean inventoryPending) {
+        BeerOrder beerOrder = beerOrderRepository.findOneById(beerOrderDto.getId());
+
+        if (allocationError) {
+            sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.ALLOCATION_FAILED);
+        } else if (!inventoryPending) {
+            sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.ALLOCATION_SUCCESS);
+            updateAllocatedQuantity(beerOrderDto);
+        } else {
+            sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.ALLOCATION_NO_INVENTORY);
+            updateAllocatedQuantity(beerOrderDto);
+        }
+    }
+
+    private void updateAllocatedQuantity(BeerOrderDto beerOrderDto) {
+        BeerOrder beerOrder = beerOrderRepository.findOneById(beerOrderDto.getId());
+        beerOrder.getBeerOrderLines().forEach(beerOrderLine -> {
+            beerOrderDto.getBeerOrderLines().forEach(beerOrderLineDto -> {
+                if (beerOrderLine.getId().equals(beerOrderLineDto.getId())) {
+                    beerOrderLine.setQuantityAllocated(beerOrderLineDto.getQuantityAllocated());
+                }
+            });
+        });
+
 
     }
 

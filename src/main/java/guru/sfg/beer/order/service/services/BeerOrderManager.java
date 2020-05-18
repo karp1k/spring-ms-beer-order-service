@@ -1,6 +1,7 @@
 package guru.sfg.beer.order.service.services;
 
 import guru.sfg.beer.order.service.domain.BeerOrder;
+import guru.springframework.springmsbeercommon.web.model.BeerOrderDto;
 
 import java.util.UUID;
 
@@ -13,4 +14,6 @@ public interface BeerOrderManager {
 
     BeerOrder newBeerOrder(BeerOrder beerOrder);
     void handleValidation(UUID orderId, boolean isValid);
+
+    void processAllocation(BeerOrderDto beerOrderDto, Boolean allocationError, Boolean inventoryPending);
 }
