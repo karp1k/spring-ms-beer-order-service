@@ -81,7 +81,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
                 }
             });
         });
-
+        beerOrderRepository.saveAndFlush(beerOrder);
 
     }
 

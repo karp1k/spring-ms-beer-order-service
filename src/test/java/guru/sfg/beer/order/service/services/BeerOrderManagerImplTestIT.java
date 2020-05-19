@@ -73,7 +73,7 @@ class BeerOrderManagerImplTestIT {
         BeerOrderLine beerOrderLine = BeerOrderLine.builder()
                 .beerId(beerId)
                 .upc(upc)
-                .orderQuantity(1)
+                .orderQuantity(10)
                 .beerOrder(beerOrder)
                 .build();
 
@@ -99,12 +99,16 @@ class BeerOrderManagerImplTestIT {
         BeerOrder finalSavedBeerOrder = savedBeerOrder;
         await().untilAsserted(() -> {
             BeerOrder foundOrder = beerOrderRepository.findOneById(finalSavedBeerOrder.getId());
-            assertEquals(BeerOrderStatusEnum.ALLOCATION_PENDING, foundOrder.getOrderStatus());
+            assertEquals(BeerOrderStatusEnum.ALLOCATED, foundOrder.getOrderStatus());
         });
         //Thread.sleep(5000); // to fast processing stoping thread
-        savedBeerOrder= beerOrderRepository.findOneById(savedBeerOrder.getId());
+        savedBeerOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
         assertNotNull(savedBeerOrder);
-        assertEquals(BeerOrderStatusEnum.ALLOCATION_PENDING, savedBeerOrder.getOrderStatus());
+        assertEquals(BeerOrderStatusEnum.ALLOCATED, savedBeerOrder.getOrderStatus());
+        savedBeerOrder.getBeerOrderLines().forEach(beerOrderLine -> {
+            assertEquals(beerOrderLine.getOrderQuantity(), beerOrderLine.getQuantityAllocated());
+        });
+
     }
 
     @Test
