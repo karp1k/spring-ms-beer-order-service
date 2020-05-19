@@ -7,6 +7,7 @@ import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.sm.BeerOrderStateChangeInterceptor;
 import guru.springframework.springmsbeercommon.web.model.BeerOrderDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
@@ -14,11 +15,13 @@ import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * @author kas
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BeerOrderManagerImpl implements BeerOrderManager {
@@ -70,6 +73,17 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
             sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.ALLOCATION_NO_INVENTORY);
             updateAllocatedQuantity(beerOrderDto);
         }
+    }
+
+    @Override
+    public void beerOrderPickedUp(UUID id) {
+        log.info("picking up order");
+        Optional<BeerOrder> beerOrderOp = Optional.ofNullable(beerOrderRepository.findOneById(id));
+        beerOrderOp.ifPresent(beerOrder -> {
+            sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.BEER_ORDER_PICKED_UP);
+            log.debug("successfully fired PICKED_UP event for {} order", beerOrder.getId());
+        });
+
     }
 
     private void updateAllocatedQuantity(BeerOrderDto beerOrderDto) {
