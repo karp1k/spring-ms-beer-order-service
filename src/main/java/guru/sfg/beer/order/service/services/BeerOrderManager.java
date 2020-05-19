@@ -10,7 +10,7 @@ import java.util.UUID;
  */
 public interface BeerOrderManager {
 
-    public static final String BEER_ORDER_ID_HEADER = "beer_order_id";
+    String BEER_ORDER_ID_HEADER = "beer_order_id";
 
     BeerOrder newBeerOrder(BeerOrder beerOrder);
     void handleValidation(UUID orderId, boolean isValid);

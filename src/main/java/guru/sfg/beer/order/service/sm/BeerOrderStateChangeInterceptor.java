@@ -13,6 +13,7 @@ import org.springframework.statemachine.state.State;
 import org.springframework.statemachine.support.StateMachineInterceptorAdapter;
 import org.springframework.statemachine.transition.Transition;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class BeerOrderStateChangeInterceptor extends StateMachineInterceptorAdap
 
     private final BeerOrderRepository beerOrderRepository;
 
+    @Transactional
     @Override
     public void preStateChange(
             State<BeerOrderStatusEnum,
@@ -42,10 +44,12 @@ public class BeerOrderStateChangeInterceptor extends StateMachineInterceptorAdap
         Optional.ofNullable(message)
                 .flatMap(msg -> Optional.ofNullable((String) msg.getHeaders().getOrDefault(BeerOrderManager.BEER_ORDER_ID_HEADER," ")))
                 .ifPresent(beerOrderId -> {
-                    BeerOrder beerOrder = beerOrderRepository.getOne(UUID.fromString(beerOrderId));
+                    BeerOrder beerOrder = beerOrderRepository.findOneById(UUID.fromString(beerOrderId));
+
                     beerOrder.setOrderStatus(state.getId());
                     // saveAndFlush to escape hibernate lazy write
                     beerOrderRepository.saveAndFlush(beerOrder);
+
                 });
 
 

@@ -18,7 +18,7 @@ public class AllocationOrderResponseListener {
 
     private final BeerOrderManager beerOrderManager;
 
-    @JmsListener(destination = Constants.VALIDATE_ORDER_RESULT_QUEUE)
+    @JmsListener(destination = Constants.ALLOCATE_ORDER_RESULT_QUEUE)
     public void listener(AllocationOrderResponse response) {
         beerOrderManager.processAllocation(response.getBeerOrderDto(),
                 response.getAllocationError(), response.getInventoryPending());

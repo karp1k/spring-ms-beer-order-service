@@ -16,7 +16,6 @@ import org.springframework.statemachine.action.Action;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /**

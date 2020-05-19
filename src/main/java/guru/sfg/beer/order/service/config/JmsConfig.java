@@ -1,6 +1,7 @@
 package guru.sfg.beer.order.service.config;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
@@ -16,10 +17,11 @@ public class JmsConfig {
 
 
     @Bean
-    public MessageConverter messageConverter() {
+    public MessageConverter messageConverter(ObjectMapper objectMapper) {
         // will convert POJO to JSON string
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setTargetType(MessageType.TEXT);
+        converter.setObjectMapper(objectMapper);
         // for spring processing. Spring sets value of property equal to specific java class. Check @Payload in HelloListener
         // for @Payload HelloWorldMessage would be: _type = guru.springframework.sfgjms.model.HelloWorldMessage
         converter.setTypeIdPropertyName("_type");

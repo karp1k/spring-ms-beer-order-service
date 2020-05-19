@@ -11,6 +11,12 @@ tomcat port: 8081
 
 related repo's:
 
-[beer-service](https://github.com/karp1k/spring-ms-beer-service)
+- [beer-service](https://github.com/karp1k/spring-ms-beer-service)
 
-[beer-inventory-service](https://github.com/karp1k/spring-ms-beer-inventory-service)
+- [beer-inventory-service](https://github.com/karp1k/spring-ms-beer-inventory-service)
+
+some libs used in test scope:
+
+- [awaitility](https://github.com/awaitility/awaitility)
+
+- [wiremock](https://github.com/tomakehurst/wiremock)

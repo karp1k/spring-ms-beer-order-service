@@ -33,7 +33,7 @@ public class AllocateOrderAction implements Action<BeerOrderStatusEnum, BeerOrde
     @Override
     public void execute(StateContext<BeerOrderStatusEnum, BeerOrderEventEnum> stateContext) {
         String orderId = (String) stateContext.getMessageHeader(BeerOrderManager.BEER_ORDER_ID_HEADER);
-        BeerOrder beerOrder = beerOrderRepository.getOne(UUID.fromString(orderId));
+        BeerOrder beerOrder = beerOrderRepository.findOneById(UUID.fromString(orderId));
         jmsTemplate.convertAndSend(Constants.ALLOCATE_ORDER_QUEUE, AllocationOrderRequest
                 .builder()
                 .beerOrderDto(mapper.beerOrderToDto(beerOrder))

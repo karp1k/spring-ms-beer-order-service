@@ -23,7 +23,7 @@ import java.util.UUID;
 public class BeerServiceImpl implements BeerService {
 
     private static final String BEER_PATH = "/api/v1/beer/";
-    private static final String BEER_UPC_PATH = BEER_PATH + "upc/";
+    public static final String BEER_UPC_PATH = BEER_PATH + "upc/";
     private final RestTemplate restTemplate;
     private final String beerServiceHost;
 
