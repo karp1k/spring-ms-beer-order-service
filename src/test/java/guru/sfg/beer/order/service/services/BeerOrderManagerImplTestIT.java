@@ -87,16 +87,16 @@ class BeerOrderManagerImplTestIT {
                 .upc(upc)
                 .build();
 
-    }
-
-    @Test
-    void newBeerOrder() {
-
         try {
             wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + upc).willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+
+    }
+
+    @Test
+    void newBeerOrder() {
 
         BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
         //Thread.sleep(5000); // to fast processing stoping thread
@@ -119,12 +119,6 @@ class BeerOrderManagerImplTestIT {
         // todo switch to mock bean
         beerOrder.setCustomerRef("fail-validation");
 
-        try {
-            wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + upc).willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
 
         BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
 
@@ -137,13 +131,39 @@ class BeerOrderManagerImplTestIT {
     }
 
     @Test
-    void newToPickedUp() {
+    void testFailedAllocation() {
+        // todo switch to mock bean
+        beerOrder.setCustomerRef("error-allocation");
 
-        try {
-            wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + upc).willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.ALLOCATION_EXCEPTION, foundOrder.getOrderStatus());
+        });
+
+    }
+
+    @Test
+    void testPartialAllocation() {
+        // todo switch to mock bean
+        beerOrder.setCustomerRef("partial-allocation");
+
+
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.PENDING_INVENTORY, foundOrder.getOrderStatus());
+            foundOrder.getBeerOrderLines().forEach(beerOrderLine -> {
+                assertEquals(beerOrderLine.getOrderQuantity() - 1, beerOrderLine.getQuantityAllocated());
+            });
+        });
+    }
+
+    @Test
+    void newToPickedUp() {
 
         BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
 
@@ -158,16 +178,6 @@ class BeerOrderManagerImplTestIT {
             BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
             assertEquals(BeerOrderStatusEnum.PICKED_UP, foundOrder.getOrderStatus());
         });
-    }
-
-    @Disabled
-    @Test
-    void handleValidation() {
-    }
-
-    @Disabled
-    @Test
-    void processAllocation() {
     }
 
 
