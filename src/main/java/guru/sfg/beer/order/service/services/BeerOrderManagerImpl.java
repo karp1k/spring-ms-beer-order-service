@@ -86,6 +86,13 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     }
 
+    @Override
+    public void cancelOrder(UUID orderId) {
+        log.debug("Canceling order {}", orderId);
+        Optional<BeerOrder> beerOrderOp = beerOrderRepository.findById(orderId);
+        beerOrderOp.ifPresent(beerOrder -> sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.CANCLE_ORDER));
+    }
+
     private void updateAllocatedQuantity(BeerOrderDto beerOrderDto) {
         BeerOrder beerOrder = beerOrderRepository.findOneById(beerOrderDto.getId());
         beerOrder.getBeerOrderLines().forEach(beerOrderLine -> {

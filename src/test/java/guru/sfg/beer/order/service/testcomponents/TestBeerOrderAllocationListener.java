@@ -29,11 +29,19 @@ public class TestBeerOrderAllocationListener {
         boolean isInventoryPending = false;
 
         AllocationOrderRequest request = (AllocationOrderRequest) message.getPayload();
-        if (request.getBeerOrderDto().getCustomerRef().equals("error-allocation")) {
-            isAllocationError = true;
-        } else if (request.getBeerOrderDto().getCustomerRef().equals("partial-allocation")) {
-            isInventoryPending = true;
+        switch (request.getBeerOrderDto().getCustomerRef()) {
+            case "error-allocation":
+                isAllocationError = true;
+                break;
+            case "partial-allocation":
+                isInventoryPending = true;
+                break;
+            case "allocation-cancel-order":
+                return;
+            default:
+                break;
         }
+
         boolean isPartialAllocation = isInventoryPending;
         request.getBeerOrderDto().getBeerOrderLines().forEach(beerOrderLineDto -> {
             int allocatedQuantity = beerOrderLineDto.getOrderQuantity();
@@ -47,7 +55,7 @@ public class TestBeerOrderAllocationListener {
         jmsTemplate.convertAndSend(Constants.ALLOCATE_ORDER_RESULT_QUEUE, AllocationOrderResponse.builder()
                         .beerOrderDto(request.getBeerOrderDto())
                         .allocationError(isAllocationError)
-                        .inventoryPending(isInventoryPending)
+                        .inventoryPending(isPartialAllocation)
                         .build()
                 );
 

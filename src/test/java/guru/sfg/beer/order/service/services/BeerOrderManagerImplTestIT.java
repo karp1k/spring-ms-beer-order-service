@@ -13,6 +13,7 @@ import guru.sfg.beer.order.service.services.ms.beer.BeerServiceImpl;
 import guru.springframework.springmsbeercommon.beerorder.domain.BeerOrderStatusEnum;
 import guru.springframework.springmsbeercommon.web.config.Constants;
 import guru.springframework.springmsbeercommon.web.events.AllocationFailureMessage;
+import guru.springframework.springmsbeercommon.web.events.DeallocateOrderRequest;
 import guru.springframework.springmsbeercommon.web.model.BeerDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -184,7 +185,6 @@ class BeerOrderManagerImplTestIT {
         AllocationFailureMessage allocationFailureMessage = (AllocationFailureMessage) jmsTemplate
                 .receiveAndConvert(Constants.ALLOCATE_ORDER_FAILURE_QUEUE);
         assertNotNull(allocationFailureMessage);
-        assertEquals(beerOrder.getId(), allocationFailureMessage.getOrderId());
     }
 
     @Test
@@ -203,6 +203,59 @@ class BeerOrderManagerImplTestIT {
             BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
             assertEquals(BeerOrderStatusEnum.PICKED_UP, foundOrder.getOrderStatus());
         });
+    }
+
+    @Test
+    void testCancelingFromValidationPending() {
+        // todo switch to mock bean
+        beerOrder.setCustomerRef("validation-cancel-order");
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.VALIDATION_PENDING, foundOrder.getOrderStatus());
+        });
+        beerOrderManager.cancelOrder(savedBeerOrder.getId());
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.CANCELED, foundOrder.getOrderStatus());
+        });
+    }
+
+    @Test
+    void testCancelingFromAllocationPending() {
+        // todo switch to mock bean
+        beerOrder.setCustomerRef("allocation-cancel-order");
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.ALLOCATION_PENDING, foundOrder.getOrderStatus());
+        });
+        beerOrderManager.cancelOrder(savedBeerOrder.getId());
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.CANCELED, foundOrder.getOrderStatus());
+        });
+    }
+
+    @Test
+    void testCancelAllocatedOrder() {
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.ALLOCATED, foundOrder.getOrderStatus());
+        });
+
+        beerOrderManager.cancelOrder(savedBeerOrder.getId());
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.CANCELED, foundOrder.getOrderStatus());
+        });
+
+        DeallocateOrderRequest deallocateOrderRequest = (DeallocateOrderRequest) jmsTemplate
+                .receiveAndConvert(Constants.DEALLOCATE_ORDER_QUEUE);
+        assertNotNull(deallocateOrderRequest);
+
     }
 
 

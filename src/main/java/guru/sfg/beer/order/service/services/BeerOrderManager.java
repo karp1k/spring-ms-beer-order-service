@@ -18,4 +18,6 @@ public interface BeerOrderManager {
     void processAllocation(BeerOrderDto beerOrderDto, Boolean allocationError, Boolean inventoryPending);
 
     void beerOrderPickedUp(UUID id);
+
+    void cancelOrder(UUID orderId);
 }

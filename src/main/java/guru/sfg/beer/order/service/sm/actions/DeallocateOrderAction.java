@@ -33,6 +33,7 @@ public class DeallocateOrderAction implements Action<BeerOrderStatusEnum, BeerOr
     @Override
     public void execute(StateContext<BeerOrderStatusEnum, BeerOrderEventEnum> stateContext) {
         String orderId = (String) stateContext.getMessageHeader(BeerOrderManager.BEER_ORDER_ID_HEADER);
+        log.debug("Deallocate process for {}", orderId);
         BeerOrder beerOrder = beerOrderRepository.findOneById(UUID.fromString(orderId));
         jmsTemplate.convertAndSend(Constants.DEALLOCATE_ORDER_QUEUE, DeallocateOrderRequest
                 .builder()
