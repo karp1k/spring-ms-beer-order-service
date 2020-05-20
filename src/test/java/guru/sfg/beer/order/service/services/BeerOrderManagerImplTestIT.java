@@ -12,8 +12,8 @@ import guru.sfg.beer.order.service.repositories.CustomerRepository;
 import guru.sfg.beer.order.service.services.ms.beer.BeerServiceImpl;
 import guru.springframework.springmsbeercommon.beerorder.domain.BeerOrderStatusEnum;
 import guru.springframework.springmsbeercommon.web.model.BeerDto;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,10 @@ class BeerOrderManagerImplTestIT {
 
     BeerOrder beerOrder;
 
+    BeerDto beerDto;
+
     UUID beerId;
+
     String upc;
 
     @BeforeEach
@@ -66,6 +69,7 @@ class BeerOrderManagerImplTestIT {
                 .build());
 
         beerOrder = BeerOrder.builder()
+                .customerRef("")
                 .customer(customer)
                 .build();
 
@@ -78,7 +82,7 @@ class BeerOrderManagerImplTestIT {
 
         beerOrder.setBeerOrderLines(new HashSet<>(Arrays.asList(beerOrderLine)));
 
-        BeerDto beerDto = BeerDto.builder()
+        beerDto = BeerDto.builder()
                 .id(beerId)
                 .upc(upc)
                 .build();
@@ -86,11 +90,7 @@ class BeerOrderManagerImplTestIT {
     }
 
     @Test
-    void newBeerOrder() throws InterruptedException {
-        BeerDto beerDto = BeerDto.builder()
-                .id(beerId)
-                .upc(upc)
-                .build();
+    void newBeerOrder() {
 
         try {
             wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + upc).willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
@@ -99,28 +99,45 @@ class BeerOrderManagerImplTestIT {
         }
 
         BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
-
-        BeerOrder finalSavedBeerOrder = savedBeerOrder;
+        //Thread.sleep(5000); // to fast processing stoping thread
         await().untilAsserted(() -> {
-            BeerOrder foundOrder = beerOrderRepository.findOneById(finalSavedBeerOrder.getId());
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertNotNull(foundOrder);
             assertEquals(BeerOrderStatusEnum.ALLOCATED, foundOrder.getOrderStatus());
         });
-        //Thread.sleep(5000); // to fast processing stoping thread
-        savedBeerOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
-        assertNotNull(savedBeerOrder);
-        assertEquals(BeerOrderStatusEnum.ALLOCATED, savedBeerOrder.getOrderStatus());
-        savedBeerOrder.getBeerOrderLines().forEach(beerOrderLine -> {
-            assertEquals(beerOrderLine.getOrderQuantity(), beerOrderLine.getQuantityAllocated());
+
+        BeerOrder allocatedBeerOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+
+        allocatedBeerOrder.getBeerOrderLines().forEach(beerOrderLine ->
+                assertEquals(beerOrderLine.getOrderQuantity(), beerOrderLine.getQuantityAllocated()));
+
+    }
+
+    @Test
+    void testFailedValidation() {
+        // attribute to set up transition to VALIDATION_EXCEPTION state
+        // todo switch to mock bean
+        beerOrder.setCustomerRef("fail-validation");
+
+        try {
+            wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + upc).willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+            BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
+            assertEquals(BeerOrderStatusEnum.VALIDATION_EXCEPTION, foundOrder.getOrderStatus());
         });
+
 
     }
 
     @Test
     void newToPickedUp() {
-        BeerDto beerDto = BeerDto.builder()
-                .id(beerId)
-                .upc(upc)
-                .build();
 
         try {
             wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH + upc).willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
@@ -129,6 +146,7 @@ class BeerOrderManagerImplTestIT {
         }
 
         BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
         await().untilAsserted(() -> {
             BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
             assertEquals(BeerOrderStatusEnum.ALLOCATED, foundOrder.getOrderStatus());
@@ -140,18 +158,14 @@ class BeerOrderManagerImplTestIT {
             BeerOrder foundOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
             assertEquals(BeerOrderStatusEnum.PICKED_UP, foundOrder.getOrderStatus());
         });
-
-        BeerOrder pickedUpBeerOrder = beerOrderRepository.findOneById(savedBeerOrder.getId());
-
-        assertEquals(BeerOrderStatusEnum.PICKED_UP, pickedUpBeerOrder.getOrderStatus());
     }
 
-    @Ignore
+    @Disabled
     @Test
     void handleValidation() {
     }
 
-    @Ignore
+    @Disabled
     @Test
     void processAllocation() {
     }
