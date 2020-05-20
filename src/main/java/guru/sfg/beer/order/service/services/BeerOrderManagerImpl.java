@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author kas
@@ -127,5 +129,36 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         });
         sm.start();
         return sm;
+    }
+    // if happens some issues with status change should be impl
+    private void awaitForStatus(UUID orderId, BeerOrderStatusEnum status) {
+        AtomicBoolean found = new AtomicBoolean(false);
+        AtomicInteger loopCount = new AtomicInteger(0);
+
+        while (!found.get()) {
+            if (loopCount.incrementAndGet() > 10) {
+                found.set(false);
+                log.debug("loop retries exceeded");
+                return;
+            }
+
+            beerOrderRepository.findById(orderId).ifPresent(beerOrder -> {
+                if (beerOrder.getOrderStatus().equals(status)) {
+                    log.debug("Order in correct status found");
+                    found.set(true);
+                } else {
+                    log.debug("Order status not equal, expected {} found {}", status, beerOrder.getOrderStatus());
+                }
+            });
+
+            if (!found.get()) {
+                try {
+                    log.debug("Sleeping for retry");
+                    Thread.sleep(100);
+                } catch (Exception e) {
+
+                }
+            }
+        }
     }
 }
