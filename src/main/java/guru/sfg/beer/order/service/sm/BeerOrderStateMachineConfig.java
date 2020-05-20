@@ -1,10 +1,7 @@
 package guru.sfg.beer.order.service.sm;
 
 import guru.sfg.beer.order.service.domain.BeerOrderEventEnum;
-import guru.sfg.beer.order.service.sm.actions.AllocateOrderAction;
-import guru.sfg.beer.order.service.sm.actions.AllocationFailureAction;
-import guru.sfg.beer.order.service.sm.actions.ValidateOrderAction;
-import guru.sfg.beer.order.service.sm.actions.ValidationFailureAction;
+import guru.sfg.beer.order.service.sm.actions.*;
 import guru.springframework.springmsbeercommon.beerorder.domain.BeerOrderStatusEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +24,7 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
     private final AllocateOrderAction allocateOrderAction;
     private final ValidationFailureAction validationFailureAction;
     private final AllocationFailureAction allocationFailureAction;
+    private final DeallocateOrderAction deallocateOrderAction;
 
     @Override
     public void configure(StateMachineStateConfigurer<BeerOrderStatusEnum, BeerOrderEventEnum> states) throws Exception {
@@ -107,6 +105,7 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
                 .source(BeerOrderStatusEnum.ALLOCATED)
                 .target(BeerOrderStatusEnum.CANCELED)
                 .event(BeerOrderEventEnum.CANCLE_ORDER)
+                .action(deallocateOrderAction)
         ;
     }
 }
