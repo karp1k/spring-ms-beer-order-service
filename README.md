@@ -13,9 +13,18 @@ tomcat port: 8081
 
 related repo's:
 
+- [beer-common](https://github.com/karp1k/spring-ms-beer-common)
+
 - [beer-service](https://github.com/karp1k/spring-ms-beer-service)
 
 - [beer-inventory-service](https://github.com/karp1k/spring-ms-beer-inventory-service)
+
+- [brewery-bom](https://github.com/karp1k/spring-ms-brewery-bom)
+
+- [brewery-eureka](https://github.com/karp1k/spring-ms-brewery-eureka)
+
+- [brewery-gateway](https://github.com/karp1k/spring-ms-brewery-gateway)
+
 
 some libs used in test scope:
 
