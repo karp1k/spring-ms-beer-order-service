@@ -18,6 +18,7 @@
 package guru.sfg.beer.order.service.web.controllers;
 
 import guru.sfg.beer.order.service.services.BeerOrderService;
+import guru.sfg.beer.order.service.services.CustomerService;
 import guru.springframework.springmsbeercommon.web.model.BeerOrderDto;
 import guru.sfg.beer.order.service.web.model.BeerOrderPagedList;
 import org.springframework.data.domain.PageRequest;
@@ -34,9 +35,11 @@ public class BeerOrderController {
     private static final Integer DEFAULT_PAGE_SIZE = 25;
 
     private final BeerOrderService beerOrderService;
+    private final CustomerService customerService;
 
-    public BeerOrderController(BeerOrderService beerOrderService) {
+    public BeerOrderController(BeerOrderService beerOrderService, CustomerService customerService) {
         this.beerOrderService = beerOrderService;
+        this.customerService = customerService;
     }
 
     @GetMapping("orders")
