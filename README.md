@@ -1,5 +1,7 @@
 # spring-ms-beer-order-service
 
+check the project page! [*see*](https://github.com/users/karp1k/projects/1)
+
 firstly, please download [beer-common](https://github.com/karp1k/spring-ms-beer-common) and do **clean-install** mvn goals
 
 secondly, you will need to download the BOM project [ms-brewery-bom](https://github.com/karp1k/spring-ms-brewery-bom) 
